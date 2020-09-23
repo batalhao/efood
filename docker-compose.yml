@@ -1,0 +1,11 @@
+version: "3.7"
+services:
+  postgres_cadastro:
+    container_name: postgres_cadastro
+    image: postgres:12
+    environment: 
+      POSTGRES_USER: efood_cadastro
+      POSTGRES_PASSWORD: efood_cadastro
+      POSTGRES_DB: efood
+    ports:
+      - "5432:5432"
