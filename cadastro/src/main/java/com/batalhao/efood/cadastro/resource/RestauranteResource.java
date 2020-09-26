@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -19,9 +20,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import com.batalhao.efood.cadastro.dto.AdicionarPratoDTO;
 import com.batalhao.efood.cadastro.dto.AdicionarRestauranteDTO;
+import com.batalhao.efood.cadastro.dto.AtualizarPratoDTO;
 import com.batalhao.efood.cadastro.dto.AtualizarRestauranteDTO;
+import com.batalhao.efood.cadastro.dto.PratoDTO;
 import com.batalhao.efood.cadastro.dto.RestauranteDTO;
+import com.batalhao.efood.cadastro.mapper.PratoMapper;
 import com.batalhao.efood.cadastro.mapper.RestauranteMapper;
 import com.batalhao.efood.cadastro.model.Prato;
 import com.batalhao.efood.cadastro.model.Restaurante;
@@ -34,6 +39,9 @@ public class RestauranteResource {
   @Inject
   RestauranteMapper restauranteMapper;
 
+  @Inject
+  PratoMapper pratoMapper;
+
   @GET
   @Tag(name = "restaurante")
   public List<RestauranteDTO> buscar() {
@@ -45,7 +53,7 @@ public class RestauranteResource {
   @POST
   @Transactional
   @Tag(name = "restaurante")
-  public Response adicionar(AdicionarRestauranteDTO dto) {
+  public Response adicionar(@Valid AdicionarRestauranteDTO dto) {
     Restaurante restaurante = restauranteMapper.toRestaurante(dto);
     restaurante.persist();
     return Response.status(Status.CREATED).build();
@@ -84,36 +92,30 @@ public class RestauranteResource {
   @GET
   @Path("{idRestaurante}/pratos")
   @Tag(name = "prato")
-  public List<Prato> listarPratos(@PathParam("idRestaurante") Long idRestaurante) {
+  public List<PratoDTO> buscarPratos(@PathParam("idRestaurante") Long idRestaurante) {
     Optional<Restaurante> restauranteOp = Restaurante.findByIdOptional(idRestaurante);
-
     if (restauranteOp.isEmpty()) {
       throw new NotFoundException("Restaurante não existe");
     }
-
-    return Prato.list("restaurante", restauranteOp.get());
+    Stream<Prato> pratos = Prato.stream("restaurante", restauranteOp.get());
+    return pratos.map(p -> pratoMapper.toDTO(p)).collect(Collectors.toList());
   }
 
   @POST
   @Path("{idRestaurante}/pratos")
   @Transactional
   @Tag(name = "prato")
-  public Response adicionarPrato(@PathParam("idRestaurante") Long idRestaurante, Prato dto) {
+  public Response adicionarPrato(@PathParam("idRestaurante") Long idRestaurante,
+      AdicionarPratoDTO dto) {
     Optional<Restaurante> restauranteOp = Restaurante.findByIdOptional(idRestaurante);
 
     if (restauranteOp.isEmpty()) {
       throw new NotFoundException("Restaurante não existe");
     }
 
-    Prato prato = new Prato();
-
-    prato.nome = dto.nome;
-    prato.descricao = dto.descricao;
-    prato.preco = dto.preco;
+    Prato prato = pratoMapper.toPrato(dto);
     prato.restaurante = restauranteOp.get();
-
     prato.persist();
-
     return Response.status(Status.CREATED).build();
   }
 
@@ -122,22 +124,20 @@ public class RestauranteResource {
   @Transactional
   @Tag(name = "prato")
   public void atualizar(@PathParam("idRestaurante") Long idRestaurante, @PathParam("id") Long id,
-      Prato dto) {
+      AtualizarPratoDTO dto) {
     Optional<Restaurante> restauranteOp = Restaurante.findByIdOptional(idRestaurante);
-
     if (restauranteOp.isEmpty()) {
       throw new NotFoundException("Restaurante não existe");
     }
 
+    // No nosso caso, id do prato vai ser único, independente do restaurante...
     Optional<Prato> pratoOp = Prato.findByIdOptional(id);
 
     if (pratoOp.isEmpty()) {
       throw new NotFoundException("Prato não existe");
     }
-
     Prato prato = pratoOp.get();
-    prato.preco = dto.preco;
-
+    pratoMapper.toPrato(dto, prato);
     prato.persist();
   }
 
@@ -147,7 +147,6 @@ public class RestauranteResource {
   @Tag(name = "prato")
   public void delete(@PathParam("idRestaurante") Long idRestaurante, @PathParam("id") Long id) {
     Optional<Restaurante> restauranteOp = Restaurante.findByIdOptional(idRestaurante);
-
     if (restauranteOp.isEmpty()) {
       throw new NotFoundException("Restaurante não existe");
     }
