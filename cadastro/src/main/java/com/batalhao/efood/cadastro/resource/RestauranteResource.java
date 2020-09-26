@@ -19,6 +19,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import com.batalhao.efood.cadastro.dto.AdicionarPratoDTO;
 import com.batalhao.efood.cadastro.dto.AdicionarRestauranteDTO;
@@ -26,6 +29,7 @@ import com.batalhao.efood.cadastro.dto.AtualizarPratoDTO;
 import com.batalhao.efood.cadastro.dto.AtualizarRestauranteDTO;
 import com.batalhao.efood.cadastro.dto.PratoDTO;
 import com.batalhao.efood.cadastro.dto.RestauranteDTO;
+import com.batalhao.efood.cadastro.infra.ConstraintViolationResponse;
 import com.batalhao.efood.cadastro.mapper.PratoMapper;
 import com.batalhao.efood.cadastro.mapper.RestauranteMapper;
 import com.batalhao.efood.cadastro.model.Prato;
@@ -53,6 +57,9 @@ public class RestauranteResource {
   @POST
   @Transactional
   @Tag(name = "restaurante")
+  @APIResponse(responseCode = "201", description = "Caso o restaurante seja cadastrado com sucesso")
+  @APIResponse(responseCode = "400",
+      content = @Content(schema = @Schema(allOf = ConstraintViolationResponse.class)))
   public Response adicionar(@Valid AdicionarRestauranteDTO dto) {
     Restaurante restaurante = restauranteMapper.toRestaurante(dto);
     restaurante.persist();
