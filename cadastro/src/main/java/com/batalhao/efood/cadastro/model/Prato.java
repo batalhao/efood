@@ -1,22 +1,29 @@
-package com.batalhao.efood.cadastro;
+package com.batalhao.efood.cadastro.model;
 
+import java.math.BigDecimal;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 
 @Entity
-@Table(name = "localizacoes")
-public class Localizacao extends PanacheEntityBase {
+@Table(name = "pratos")
+public class Prato extends PanacheEntityBase {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   public Long id;
 
-  public Double latitude;
+  public String nome;
 
-  public Double longitude;
+  public String descricao;
+
+  @ManyToOne
+  public Restaurante restaurante;
+
+  public BigDecimal preco;
 
 }

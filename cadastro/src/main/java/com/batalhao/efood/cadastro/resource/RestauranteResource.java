@@ -1,7 +1,10 @@
-package com.batalhao.efood.cadastro;
+package com.batalhao.efood.cadastro.resource;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -16,22 +19,34 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import com.batalhao.efood.cadastro.dto.AdicionarRestauranteDTO;
+import com.batalhao.efood.cadastro.dto.AtualizarRestauranteDTO;
+import com.batalhao.efood.cadastro.dto.RestauranteDTO;
+import com.batalhao.efood.cadastro.mapper.RestauranteMapper;
+import com.batalhao.efood.cadastro.model.Prato;
+import com.batalhao.efood.cadastro.model.Restaurante;
 
 @Path("/restaurantes")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class RestauranteResource {
 
+  @Inject
+  RestauranteMapper restauranteMapper;
+
   @GET
   @Tag(name = "restaurante")
-  public List<Restaurante> listar() {
-    return Restaurante.listAll();
+  public List<RestauranteDTO> buscar() {
+    Stream<Restaurante> restaurantes = Restaurante.streamAll();
+    return restaurantes.map(r -> restauranteMapper.toRestauranteDTO(r))
+        .collect(Collectors.toList());
   }
 
   @POST
   @Transactional
   @Tag(name = "restaurante")
-  public Response adicionar(Restaurante restaurante) {
+  public Response adicionar(AdicionarRestauranteDTO dto) {
+    Restaurante restaurante = restauranteMapper.toRestaurante(dto);
     restaurante.persist();
     return Response.status(Status.CREATED).build();
   }
@@ -40,16 +55,17 @@ public class RestauranteResource {
   @Transactional
   @Path("{id}")
   @Tag(name = "restaurante")
-  public void atualizar(@PathParam("id") Long id, Restaurante restaurante) {
+  public void atualizar(@PathParam("id") Long id, AtualizarRestauranteDTO dto) {
     Optional<Restaurante> restauranteOp = Restaurante.findByIdOptional(id);
-
-    if (restauranteOp.isEmpty())
+    if (restauranteOp.isEmpty()) {
       throw new NotFoundException();
+    }
+    Restaurante restaurante = restauranteOp.get();
 
-    Restaurante restauranteUpdate = restauranteOp.get();
-    restauranteUpdate.nome = restaurante.nome;
+    // MapStruct: aqui passo a referencia para ser atualizada
+    restauranteMapper.toRestaurante(dto, restaurante);
 
-    restauranteUpdate.persist();
+    restaurante.persist();
   }
 
   @DELETE
