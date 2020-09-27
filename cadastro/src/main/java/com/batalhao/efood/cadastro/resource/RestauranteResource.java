@@ -50,6 +50,8 @@ import com.batalhao.efood.cadastro.model.Restaurante;
         tokenUrl = "http://localhost:8180/auth/realms/efood/protocol/openid-connect/token")))
 @SecurityRequirement(name = "efood-oauth", scopes = {})
 // @SecurityRequirements(value = {@SecurityRequirement(name = "efood-oauth", scopes = {})})
+// Anotaçao utiizada para fazer o trace de camadas de negocio
+// @Traced
 public class RestauranteResource {
 
   @Inject
