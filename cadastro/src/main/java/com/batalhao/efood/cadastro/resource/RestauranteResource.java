@@ -20,6 +20,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import org.eclipse.microprofile.metrics.annotation.Counted;
+import org.eclipse.microprofile.metrics.annotation.SimplyTimed;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -62,6 +65,10 @@ public class RestauranteResource {
 
   @GET
   @Tag(name = "restaurante")
+  @Counted(name = "QtdeBuscas Restaurante")
+  @SimplyTimed(name = "TempoSimples Busca Restaurante")
+  @Timed(name = "TempoCompleto Busca Restaurante")
+  // @Gauge(name = "Gauge Busca Restaurante", unit = "un")
   public List<RestauranteDTO> buscar() {
     Stream<Restaurante> restaurantes = Restaurante.streamAll();
     return restaurantes.map(r -> restauranteMapper.toRestauranteDTO(r))
