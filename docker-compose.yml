@@ -63,3 +63,13 @@ services:
       ARTEMIS_USERNAME: admin
       ARTEMIS_PASSWORD: admin    
       
+  mongodb_efood:
+    container_name: mongodb_efood
+    image: mongo:4.2.10-bionic
+    ports:
+      - "27017:27017"
+    environment: 
+      MONGO_INITDB_ROOT_USERNAME: efood_pedido
+      MONGO_INITDB_ROOT_PASSWORD: efood_pedido
+      MONGO_INITDB_DATABASE: efood      
+      
