@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   postgres_cadastro:
-    container_name: postgres_cadastro
+    container_name: postgres_cadastro_efood
     image: postgres:12
     environment: 
       POSTGRES_USER: efood_cadastro
@@ -10,6 +10,16 @@ services:
       POSTGRES_DB: efood
     ports:
       - "5432:5432"
+
+  postgres_marketplace:
+    container_name: postgres_marketplace_efood
+    image: postgres:12
+    environment: 
+      POSTGRES_USER: efood_marketplace
+      POSTGRES_PASSWORD: efood_marketplace
+      POSTGRES_DB: efood
+    ports:
+      - "5433:5432"
   
   keycloak_efood:
     container_name: keycloak_efood
@@ -44,3 +54,12 @@ services:
 #    image: grafana/grafana:6.5.0
     network_mode: "host"      
     
+  artemis_efood:
+    container_name: artemis_efood
+    image: vromero/activemq-artemis:2.15.0
+#    image: activemq-debian
+    network_mode: "host"
+    environment: 
+      ARTEMIS_USERNAME: admin
+      ARTEMIS_PASSWORD: admin    
+      
