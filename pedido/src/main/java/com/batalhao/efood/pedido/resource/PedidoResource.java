@@ -9,6 +9,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import org.bson.types.ObjectId;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import com.batalhao.efood.pedido.model.Localizacao;
 import com.batalhao.efood.pedido.model.Pedido;
 import io.quarkus.mongodb.panache.PanacheMongoEntityBase;
@@ -39,12 +40,14 @@ public class PedidoResource {
   // }
 
   @GET
+  @Tag(name = "pedido")
   public List<PanacheMongoEntityBase> hello() {
     return Pedido.listAll();
   }
 
   @POST
   @Path("{idPedido}/localizacao")
+  @Tag(name = "pedido")
   public Pedido novaLocalizacao(@PathParam("idPedido") String idPedido, Localizacao localizacao) {
     Pedido pedido = Pedido.findById(new ObjectId(idPedido));
 
