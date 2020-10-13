@@ -22,6 +22,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import org.eclipse.microprofile.jwt.Claim;
+import org.eclipse.microprofile.jwt.Claims;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.SimplyTimed;
 import org.eclipse.microprofile.metrics.annotation.Timed;
@@ -47,6 +50,7 @@ import com.batalhao.efood.cadastro.mapper.PratoMapper;
 import com.batalhao.efood.cadastro.mapper.RestauranteMapper;
 import com.batalhao.efood.cadastro.model.Prato;
 import com.batalhao.efood.cadastro.model.Restaurante;
+import io.quarkus.security.ForbiddenException;
 
 @Path("/restaurantes")
 @Produces(MediaType.APPLICATION_JSON)
@@ -75,6 +79,13 @@ public class RestauranteResource {
   @Channel("restaurantes")
   Emitter<String> emitter;
 
+  @Inject
+  JsonWebToken jwt;
+
+  @Inject
+  @Claim(standard = Claims.sub)
+  String sub;
+
   @GET
   @Tag(name = "restaurante")
   @Counted(name = "QtdeBuscas Restaurante")
@@ -95,6 +106,7 @@ public class RestauranteResource {
       content = @Content(schema = @Schema(allOf = ConstraintViolationResponse.class)))
   public Response adicionar(@Valid AdicionarRestauranteDTO dto) {
     Restaurante restaurante = restauranteMapper.toRestaurante(dto);
+    restaurante.proprietario = sub;
     restaurante.persist();
 
     // emitterRestaurante.send(restaurante);
@@ -117,6 +129,10 @@ public class RestauranteResource {
       throw new NotFoundException();
     }
     Restaurante restaurante = restauranteOp.get();
+
+    if (!restaurante.proprietario.equals(sub)) {
+      throw new ForbiddenException();
+    }
 
     // MapStruct: aqui passo a referencia para ser atualizada
     restauranteMapper.toRestaurante(dto, restaurante);
@@ -197,6 +213,10 @@ public class RestauranteResource {
     Optional<Restaurante> restauranteOp = Restaurante.findByIdOptional(idRestaurante);
     if (restauranteOp.isEmpty()) {
       throw new NotFoundException("Restaurante não existe");
+    }
+
+    if (!restauranteOp.get().proprietario.equals(sub)) {
+      throw new ForbiddenException();
     }
 
     Optional<Prato> pratoOp = Prato.findByIdOptional(id);
